@@ -12,7 +12,7 @@ import {
   resolveRedirectUri,
   type RedirectUriResolution,
 } from '@/lib/auth/oauth-allowlist'
-import { resolveDiscoveryBaseUrl } from '@/lib/api/v1/base-url'
+import { resolveDiscoveryBaseUrl, getCanonicalBaseUrl } from '@/lib/api/v1/base-url'
 import {
   ALL_SCOPES,
   API_KEY_SCOPES,
@@ -111,8 +111,12 @@ function verifyScopeBinding(scopeParam: string, signature: string): boolean {
 function buildLoginRedirect(request: Request): Response {
   const url = new URL(request.url)
   const next = `${url.pathname}${url.search}`
+  // url.origin reflects the standalone server's own bind address
+  // (HOSTNAME/PORT, e.g. 0.0.0.0:3000) rather than the public host behind
+  // the reverse proxy. Use the same canonical-origin source as the rest of
+  // the codebase (lib/api/v1/base-url.ts) instead of trusting request.url.
   return NextResponse.redirect(
-    new URL(`/login?next=${encodeURIComponent(next)}`, url.origin)
+    new URL(`/login?next=${encodeURIComponent(next)}`, getCanonicalBaseUrl())
   )
 }
 
@@ -140,7 +144,9 @@ async function requireAal2(
   const url = new URL(request.url)
   const returnTo = `${url.pathname}${url.search}`
   const stepUp = (page: '/mfa/verify' | '/mfa/enroll') =>
-    NextResponse.redirect(new URL(`${page}?returnTo=${encodeURIComponent(returnTo)}`, url.origin))
+    NextResponse.redirect(
+      new URL(`${page}?returnTo=${encodeURIComponent(returnTo)}`, getCanonicalBaseUrl()),
+    )
 
   // Only a positive "this session is AAL2" answer lets consent through. A
   // failed or empty assurance lookup is treated as AAL1 (verify page), never
