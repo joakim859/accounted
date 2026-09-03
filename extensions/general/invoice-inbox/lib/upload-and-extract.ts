@@ -1,5 +1,6 @@
 import { after } from 'next/server'
 import { uploadDocument } from '@/lib/core/documents/document-service'
+import { shrinkImageForStorage } from '@/lib/documents/shrink-image-for-storage'
 import { extractInvoiceFields, emptyResult, fetchOwnCompanyIdentity } from './extract-invoice-fields'
 import { mirrorExtractionToDocument } from './mirror-extraction'
 import type { InboxKindHint } from './resend-inbound'
@@ -246,10 +247,20 @@ export async function uploadAndExtract(
   matchedTransactionId?: string | null,
   opts: ArchivedDocumentProcessingOptions = {},
 ) {
+  // Archive a storage-optimised re-encode, not the original: AI extraction
+  // below still runs on `file` (the untouched original buffer) via
+  // processArchivedDocument, which is called with `file`, not with what
+  // went into uploadDocument. Full detail on why this happens here rather
+  // than as a later edit of the archived document: shrinkImageForStorage's
+  // own doc comment (lib/documents/shrink-image-for-storage.ts).
+  const { buffer: storageBuffer, mimeType: storageMimeType } = await shrinkImageForStorage(
+    file.buffer,
+    file.type,
+  )
   const doc = await uploadDocument(supabase, userId, companyId, {
     name: file.name,
-    buffer: file.buffer,
-    type: file.type,
+    buffer: storageBuffer,
+    type: storageMimeType,
   }, {
     upload_source: source === 'email' ? 'email' : source === 'whatsapp' ? 'whatsapp' : 'file_upload',
     // Every inbox channel dedupes on content: the same receipt forwarded to
