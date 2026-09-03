@@ -50,6 +50,9 @@ ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=__NEXT_PUBLIC_TURNSTILE_SITE_KEY__
 ENV NEXT_PUBLIC_BRANDING_APP_NAME=__NEXT_PUBLIC_BRANDING_APP_NAME__
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# Type-check pass OOMs at default heap on this VM (11GiB RAM, no swap) now that
+# the codebase has grown; give the build step more headroom.
+ENV NODE_OPTIONS=--max-old-space-size=6144
 
 RUN npm run build
 
