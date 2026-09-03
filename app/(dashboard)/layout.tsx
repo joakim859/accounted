@@ -630,10 +630,11 @@ export default async function DashboardLayout({
           <SettingsHotkey />
           {settingsModal}
         </div>
-        {/* Outside #dash-shell on purpose: non-modal dialogs (booking,
-            invoice) set `inert` on the shell while open, and the assistant
-            entry point must stay clickable then, like the sheet itself. */}
-        <AgentTrigger hidden={userPrefs?.hide_assistant_fab === true} />
+        {/* Floating assistant entry point hidden on this self-hosted
+            deployment, deliberately, alongside the hidden /chat nav entry
+            (DashboardNav.tsx) and the removed settings toggle
+            (AssistantSettingsContent.tsx) that used to control this. */}
+        <AgentTrigger hidden />
         {!isSandbox && (
           <AnalyticsIdentify
             user={{
