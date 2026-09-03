@@ -6885,6 +6885,7 @@
     "payslips_send_requires_subscription": "Emailing payslips requires a subscription. Download the PDFs for free.",
     "action_send_payslips_again": "Send again",
     "action_download_payslips": "Download all payslips",
+    "action_download_payslips_internal": "Download all payslips +INFO",
     "action_download_agi": "Download AGI file (XML)",
     "action_delete_draft": "Delete draft",
     "action_correct": "Correct payroll run (storno)",

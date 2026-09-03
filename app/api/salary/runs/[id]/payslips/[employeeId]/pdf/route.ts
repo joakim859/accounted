@@ -20,9 +20,17 @@ ensureInitialized()
  */
 export const GET = withRouteContext<{ params: Promise<{ id: string; employeeId: string }> }>(
   'salary.run.payslip.pdf',
-  async (_request, ctx, { params }) => {
+  async (request, ctx, { params }) => {
     const { id, employeeId } = await params
     const { supabase, companyId } = ctx
+    // Internal-use PDF: the calculation breakdown is included by default
+    // (useful for checking the math), but callers preparing a copy for
+    // handing to the employee directly (e.g. the RunHeader bulk-download
+    // "utan beräkningsunderlag" menu item) can opt it out with
+    // ?breakdown=0. The public token route (build-payslip-data.ts's
+    // includeBreakdown doc comment) always opts it out; pay amounts are
+    // identical either way.
+    const includeBreakdown = new URL(request.url).searchParams.get('breakdown') !== '0'
 
     // Load salary run
     const { data: run } = await supabase
@@ -73,6 +81,7 @@ export const GET = withRouteContext<{ params: Promise<{ id: string; employeeId: 
       sre,
       employee: emp,
       company: { name: displayName ?? company.name, org_number: company.org_number },
+      includeBreakdown,
     })
     const fileName = payslipFileName(run, emp)
 

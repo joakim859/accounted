@@ -615,7 +615,13 @@ export default function SalaryRunPage({ params }: { params: Promise<{ id: string
   // hands out what the ZIP contains and has no other signal that someone is
   // missing from it. Every outcome is recorded per employee and reported by
   // name; a short archive is never presented as a complete one.
-  async function handleBulkPayslipDownload() {
+  // includeBreakdown true = the internal copy (RunHeader's "+ beräkningsunderlag"
+  // menu item, same PDF as viewing a payslip from the dashboard); false = the
+  // clean copy meant for handing directly to employees, matching what the
+  // public token link now sends (see build-payslip-data.ts's includeBreakdown
+  // doc comment). Both call the internal, logged-in-only route -- only the
+  // ?breakdown=0 query param and the zip filename differ.
+  async function handleBulkPayslipDownload(includeBreakdown: boolean) {
     if (!run) return
     setActionLoading('bulk_payslip')
     try {
@@ -629,7 +635,9 @@ export default function SalaryRunPage({ params }: { params: Promise<{ id: string
         }).employee
         let ok = false
         try {
-          const res = await fetch(`/api/salary/runs/${id}/payslips/${sre.employee_id}/pdf`)
+          const res = await fetch(
+            `/api/salary/runs/${id}/payslips/${sre.employee_id}/pdf${includeBreakdown ? '' : '?breakdown=0'}`,
+          )
           if (res.ok) {
             const blob = await res.blob()
             const fileName = employee
@@ -665,7 +673,9 @@ export default function SalaryRunPage({ params }: { params: Promise<{ id: string
       const url = URL.createObjectURL(archive)
       const a = document.createElement('a')
       a.href = url
-      a.download = `Lonespec_${periodLabel}.zip`
+      a.download = includeBreakdown
+        ? `Lonespec_${periodLabel}_internt.zip`
+        : `Lonespec_${periodLabel}.zip`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
@@ -832,7 +842,8 @@ export default function SalaryRunPage({ params }: { params: Promise<{ id: string
         onRevert={() => handleAction('revert')}
         onUnapprove={handleUnapprove}
         onSendPayslips={handleSendPayslips}
-        onDownloadPayslips={handleBulkPayslipDownload}
+        onDownloadPayslips={() => handleBulkPayslipDownload(true)}
+        onDownloadPayslipsClean={() => handleBulkPayslipDownload(false)}
         onDownloadAgi={handleDownloadAgi}
         onDelete={handleDelete}
         onCorrect={handleCorrect}
