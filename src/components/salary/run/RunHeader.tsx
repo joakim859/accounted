@@ -80,6 +80,9 @@ interface RunHeaderProps {
   onUnapprove: () => void
   onSendPayslips: () => void
   onDownloadPayslips: () => void
+  // Same PDFs, without the internal "Beräkningsunderlag" section — for
+  // handing directly to employees instead of using for internal checks.
+  onDownloadPayslipsClean: () => void
   onDownloadAgi: () => void
   onDelete: () => void
   onCorrect: () => void
@@ -101,6 +104,7 @@ export function RunHeader({
   onUnapprove,
   onSendPayslips,
   onDownloadPayslips,
+  onDownloadPayslipsClean,
   onDownloadAgi,
   onDelete,
   onCorrect,
@@ -316,9 +320,15 @@ export function RunHeader({
                   </DropdownMenuItem>
                 )}
                 {showDownloadPayslips && (
-                  <DropdownMenuItem onSelect={onDownloadPayslips} disabled={busy}>
+                  <DropdownMenuItem onSelect={onDownloadPayslipsClean} disabled={busy}>
                     <FileDown className="h-4 w-4" />
                     {t('action_download_payslips')}
+                  </DropdownMenuItem>
+                )}
+                {showDownloadPayslips && (
+                  <DropdownMenuItem onSelect={onDownloadPayslips} disabled={busy}>
+                    <FileDown className="h-4 w-4" />
+                    {t('action_download_payslips_internal')}
                   </DropdownMenuItem>
                 )}
                 {showDownloadAgi && (
