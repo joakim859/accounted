@@ -596,10 +596,9 @@ export default function DashboardNav({ companyName: _companyName, entityType, pa
     // (cockpitNavItems); in company mode the pinned back-to-clients link
     // replaces it, and non-byrå users never see it (WL-14).
     if (item.byraOnly) return false
-    // Hide the Assistent (/chat) tab until the agent is built: mirrors the
-    // floating AgentTrigger and avoids a nav entry that only bounces to the
-    // home checklist (chat/layout redirects unverified users to /).
-    if (item.href === '/chat' && !agentIdentity.isVerified) return false
+    // Assistent (/chat) tab hidden from the sidebar on this self-hosted
+    // deployment, deliberately, alongside the floating AgentTrigger toggle.
+    if (item.href === '/chat') return false
     // Granskning stays in the top nav at all times now: the badge
     // surfaces the count when there are pending ops, but the link is
     // always present so users can navigate there manually.
@@ -652,10 +651,8 @@ export default function DashboardNav({ companyName: _companyName, entityType, pa
         { href: '/chat', labelKey: 'assistant', icon: Sparkles },
         { href: '/transactions', labelKey: 'transactions', icon: ArrowLeftRight },
       ]
-  // Same gate as the sidebar: no Assistent tab until the agent is built.
-  const mobileNavItems = allMobileNavItems.filter(
-    (item) => item.href !== '/chat' || agentIdentity.isVerified,
-  )
+  // Same gate as the sidebar: Assistent tab hidden deliberately.
+  const mobileNavItems = allMobileNavItems.filter((item) => item.href !== '/chat')
 
   const renderBadge = (item: { comingSoon?: boolean; devBadge?: boolean; betaBadge?: boolean; newBadge?: boolean }) => {
     const baseClass =
